@@ -55,12 +55,27 @@ app.get('/bsg-people', async function (req, res) {
     }
 });
 
+app.get('/customers', async function (req, res) {
+    try {
+ 
+        const query1 = 'SELECT * FROM Customers;';
+        const [customers] = await db.query(query1);
+        res.render('customers', { people: customers});
+    } catch (error) {
+        console.error('Error executing queries:', error);
+        // Send a generic error message to the browser
+        res.status(500).send(
+            'An error occurred while executing the database queries.'
+        );
+    }
+});
+
 // ########################################
 // ########## LISTENER
 
 app.listen(PORT, function () {
     console.log(
-        'Express started on http://localhost:' +
+        'Express started on http://classwork.engr.oregonstate.edu:' +
             PORT +
             '; press Ctrl-C to terminate.'
     );
