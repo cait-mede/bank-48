@@ -1,0 +1,26 @@
+<h1>Transacation Types</h1>
+
+{{! READ table }}
+<table>
+    <thead>
+        {{! For the table header row, we print the DB attribute names }}
+        <tr>
+            {{#each types.[0]}}
+            <th>
+                {{@key}}
+            </th>
+            {{/each}}
+            <th></th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {{! For each row, print the id, fname, lname, homeworld and age }}
+        {{#each types}}
+        <tr>
+            <td>{{this.transaction_type}}</td>
+        </tr>
+        {{/each}}
+    </tbody>
+</table>
+

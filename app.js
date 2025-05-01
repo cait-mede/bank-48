@@ -55,12 +55,75 @@ app.get('/bsg-people', async function (req, res) {
     }
 });
 
+app.get('/customers', async function (req, res) {
+    try {
+ 
+        const query1 = 'SELECT * FROM Customers;';
+        const [customers] = await db.query(query1);
+        res.render('customers', { people: customers});
+    } catch (error) {
+        console.error('Error executing queries:', error);
+        // Send a generic error message to the browser
+        res.status(500).send(
+            'An error occurred while executing the database queries.'
+        );
+    }
+});
+
+app.get('/accounts', async function (req, res) {
+    try {
+ 
+        const query1 = 'SELECT * FROM Accounts;';
+        const [accounts] = await db.query(query1);
+        const query2 = 'SELECT * FROM Account_Types';
+        const [account_types] = await db.query(query2);
+        res.render('accounts', { accounts: accounts, account_types: account_types});
+    } catch (error) {
+        console.error('Error executing queries:', error);
+        // Send a generic error message to the browser
+        res.status(500).send(
+            'An error occurred while executing the database queries.'
+        );
+    }
+});
+
+app.get('/account_types', async function (req, res) {
+    try {
+ 
+        const query1 = 'SELECT account_type FROM Account_Types;';
+        const [account_types] = await db.query(query1);
+        res.render('account_types', { types: account_types});
+    } catch (error) {
+        console.error('Error executing queries:', error);
+        // Send a generic error message to the browser
+        res.status(500).send(
+            'An error occurred while executing the database queries.'
+        );
+    }
+});
+ 
+app.get('/transaction_types', async function (req, res) {
+    try {
+ 
+        const query1 = 'SELECT transaction_type FROM Transaction_Types;';
+        const [transaction_types] = await db.query(query1);
+        res.render('transaction_types', { types: transaction_types});
+    } catch (error) {
+        console.error('Error executing queries:', error);
+        // Send a generic error message to the browser
+        res.status(500).send(
+            'An error occurred while executing the database queries.'
+        );
+    }
+});
+ 
+
 // ########################################
 // ########## LISTENER
 
 app.listen(PORT, function () {
     console.log(
-        'Express started on http://localhost:' +
+        'Express started on http://classwork.engr.oregonstate.edu:' +
             PORT +
             '; press Ctrl-C to terminate.'
     );

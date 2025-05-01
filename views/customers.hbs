@@ -1,0 +1,85 @@
+<h1>Customers</h1>
+
+{{! READ table }}
+<table>
+    <thead>
+        {{! For the table header row, we print the DB attribute names }}
+        <tr>
+            {{#each people.[0]}}
+            <th>
+                {{@key}}
+            </th>
+            {{/each}}
+            <th></th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {{! For each row, print the id, fname, lname, homeworld and age }}
+        {{#each people}}
+        <tr>
+            <td>{{this.customer_id}}</td>
+            <td>{{this.first_name}}</td>
+            <td>{{this.last_name}}</td>
+            <td>{{this.middle_name}}</td>
+            <td>{{this.phone_number}}</td>
+            <td>{{this.business_name}}</td>
+            <td>{{this.email}}</td>
+
+            {{! DELETE form }}
+            <form id='delete_person_form'>
+                <input type='hidden' name='delete_person_id' value='{{this.customer_id}}' />
+                <input type='hidden' name='delete_person_name' value='{{this.first_name}} {{this.last_name}}' />
+                <td>
+                    <button type='submit'>
+                        Delete
+                    </button>
+                </td>
+            </form>
+        </tr>
+        {{/each}}
+    </tbody>
+</table>
+
+{{! CREATE form }}
+<h2>Create a Person</h2>
+<form class='cuForm' id='create_person_form'>
+    <label for='create_person_first_name'>First Name: </label>
+    <input type='text' name='create_person_first_name' id='create_person_first_name' required />
+
+    <label for='create_person_middle_name'>Middle Name: </label>
+    <input type='text' name='create_person_middle_name' id='create_person_middle_name'/>
+
+    <label for='create_person_last_name'>Last Name: </label>
+    <input type='text' name='create_person_last_name' id='create_person_last_name' required/>
+
+    <label for='create_person_phone_number'>Phone Number: </label>
+    <input type='text' name='create_person_phone_number' id='create_person_phone_number' required/>
+
+    <label for='create_person_email'>Email: </label>
+    <input type='text' name='create_person_email' id='create_person_email'/>
+
+    <label for='create_person_business_name'>Business Name: </label>
+    <input type='text' name='create_person_business_name' id='create_person_business_name'/>
+
+    <input type='submit' />
+</form>
+
+{{! UPDATE form }}
+<h2>Update a Person</h2>
+<form class='cuForm' id='update_person_form'>
+    <label for='update_customer_id'>Person to Update: </label>
+    <select name='update_customer_id' id='update_customer_id' required>
+        <option value='' disabled selected>Select a Customer</option>
+        {{#each people}}
+        <option value='{{this.customer_id}}' required>
+            {{this.customer_id}}
+            -
+            {{this.first_name}}
+            {{this.last_name}}
+        </option>
+        {{/each}}
+    </select>
+
+    <input type='submit' />
+</form>
