@@ -70,6 +70,23 @@ app.get('/customers', async function (req, res) {
     }
 });
 
+app.get('/accounts', async function (req, res) {
+    try {
+ 
+        const query1 = 'SELECT * FROM Accounts;';
+        const [accounts] = await db.query(query1);
+        const query2 = 'SELECT * FROM Account_Types';
+        const [account_types] = await db.query(query2);
+        res.render('accounts', { accounts: accounts, account_types: account_types});
+    } catch (error) {
+        console.error('Error executing queries:', error);
+        // Send a generic error message to the browser
+        res.status(500).send(
+            'An error occurred while executing the database queries.'
+        );
+    }
+});
+
 // ########################################
 // ########## LISTENER
 
