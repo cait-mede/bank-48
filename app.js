@@ -87,6 +87,37 @@ app.get('/accounts', async function (req, res) {
     }
 });
 
+app.get('/account_types', async function (req, res) {
+    try {
+ 
+        const query1 = 'SELECT account_type FROM Account_Types;';
+        const [account_types] = await db.query(query1);
+        res.render('account_types', { types: account_types});
+    } catch (error) {
+        console.error('Error executing queries:', error);
+        // Send a generic error message to the browser
+        res.status(500).send(
+            'An error occurred while executing the database queries.'
+        );
+    }
+});
+ 
+app.get('/transaction_types', async function (req, res) {
+    try {
+ 
+        const query1 = 'SELECT transaction_type FROM Transaction_Types;';
+        const [transaction_types] = await db.query(query1);
+        res.render('transaction_types', { types: transaction_types});
+    } catch (error) {
+        console.error('Error executing queries:', error);
+        // Send a generic error message to the browser
+        res.status(500).send(
+            'An error occurred while executing the database queries.'
+        );
+    }
+});
+ 
+
 // ########################################
 // ########## LISTENER
 
