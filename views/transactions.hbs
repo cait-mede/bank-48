@@ -1,0 +1,94 @@
+<h1>Transactions</h1>
+
+{{! READ table }}
+<table>
+    <thead>
+        <tr>
+            {{#each transactions.[0]}}
+            <th>{{@key}}</th>
+            {{/each}}
+            <th></th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {{#each transactions}}
+        <tr>
+            <td>{{this.transaction_id}}</td>
+            <td>{{this.transaction_type}}</td>
+            <td>{{this.origin_account_number}}</td>
+            <td>{{this.destination_account_number}}</td>
+            <td>{{this.amount}}</td>
+
+            {{! DELETE form }}
+            <form id="delete_transaction_form">
+                <input type="hidden" name="delete_transaction_id" value="{{this.transaction_id}}" />
+                <td>
+                    <button type="submit">Delete</button>
+                </td>
+            </form>
+        </tr>
+        {{/each}}
+    </tbody>
+</table>
+
+{{!-- AI Generated to dynamically show Origin/Destination Accoutn fields based on transaction type chosen --}}
+<h2>Create a Transaction</h2>
+<form class="cuForm" id="create_transaction_form">
+
+    {{!-- Transaction Type --}}
+    <label for="create_transaction_type_id">Transaction Type:</label>
+    <select name="create_transaction_type_id" id="create_transaction_type_id" required>
+        <option value="" selected>Select a Transaction Type</option>
+        {{#each types}}
+        <option value="{{this.transaction_type_id}}">{{this.transaction_type}}</option>
+        {{/each}}
+    </select>
+
+     {{!-- Origin Account Number --}}
+    <div id="origin_account_input" >
+        <label for="create_origin_account_number">Origin Account Number:</label>
+        <input type="text" name="create_origin_account_number" id="create_origin_account_number" />
+    </div>
+
+    {{!-- Destination Account Number --}}
+    <div id="destination_account_input">
+        <label for="create_destination_account_number">Destination Account Number:</label>
+        <input type="text" name="create_destination_account_number" id="create_destination_account_number" />
+    </div>
+
+    {{!-- Amount --}}
+    <label for="create_transaction_amount">Amount:</label>
+    <input type="text" name="create_transaction_amount" id="create_transaction_amount" required />
+
+    <input type="submit" value="Submit Transaction" />
+</form>
+
+<script>
+    function updateAccountFields() {
+        const type = parseInt(document.getElementById('create_transaction_type_id').value);
+        const originDiv = document.getElementById('origin_account_input');
+        const destDiv = document.getElementById('destination_account_input');
+
+        // Hide both by default
+        originDiv.style.display = 'none';
+        destDiv.style.display = 'none';
+
+        if (type === 1) { // Withdraw
+            originDiv.style.display = 'block';
+        } else if (type === 2) { // Deposit
+            destDiv.style.display = 'block';
+        } else if (type === 3) { // Transfer
+            originDiv.style.display = 'block';
+            destDiv.style.display = 'block';
+        }
+    }
+
+    // Update when dropdown changes
+    document.getElementById('create_transaction_type_id').addEventListener('change', function() {
+    console.log('Transaction type selected:', this.value);
+    updateAccountFields();
+});
+    // Update immediately on load (in case form is repopulated)
+    window.addEventListener('DOMContentLoaded', updateAccountFields);
+</script>
