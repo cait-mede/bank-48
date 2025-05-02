@@ -117,6 +117,30 @@ app.get('/transaction_types', async function (req, res) {
     }
 });
  
+app.get('/transactions', async function (req, res) {
+    try {
+ 
+        const query1 = 'SELECT * FROM Transaction_Types;';
+        const [transaction_types] = await db.query(query1);
+        const query2 = 'SELECT t.transaction_id, tt.transaction_type, \
+                        oa.account_number AS origin_account_number, \
+                        da.account_number AS destination_account_number, \
+                        t.amount \
+                        FROM Transactions t \
+                        JOIN Transaction_Types tt ON t.transaction_type_id = tt.transaction_type_id \
+                        LEFT JOIN Accounts oa ON t.origin_account_id = oa.account_id \
+                        LEFT JOIN Accounts da ON t.destination_account_id = da.account_id;'
+        const [transactions] = await db.query(query2);
+        res.render('transactions', {transactions: transactions, types: transaction_types});
+    } catch (error) {
+        console.error('Error executing queries:', error);
+        // Send a generic error message to the browser
+        res.status(500).send(
+            'An error occurred while executing the database queries.'
+        );
+    }
+});
+ 
 
 // ########################################
 // ########## LISTENER
