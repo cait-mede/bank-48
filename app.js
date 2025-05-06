@@ -140,6 +140,21 @@ app.get('/transactions', async function (req, res) {
         );
     }
 });
+
+app.get('/customers_accounts', async function (req, res) {
+    try {
+ 
+        const query1 = 'SELECT * FROM Customers_Accounts;';
+        const [customers_accounts] = await db.query(query1);
+        res.render('customers_accounts', { accounts: customers_accounts});
+    } catch (error) {
+        console.error('Error executing queries:', error);
+        // Send a generic error message to the browser
+        res.status(500).send(
+            'An error occurred while executing the database queries.'
+        );
+    }
+});
  
 
 // ########################################

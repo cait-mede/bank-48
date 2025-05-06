@@ -1,0 +1,39 @@
+<h1>Customers Accounts</h1>
+
+{{! READ table }}
+<table>
+    <thead>
+        {{! For the table header row, we print the DB attribute names }}
+        <tr>
+            {{#each customers_accounts.[0]}}
+            <th>
+                {{@key}}
+            </th>
+            {{/each}}
+            <th></th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {{! For each row, print the id, fname, lname, homeworld and age }}
+        {{#each customers_accounts}}
+        <tr>
+            <td>{{this.customer_account_id}}</td>
+            <td>{{this.customer_id}}</td>
+            <td>{{this.account_id}}</td>
+            <td>{{this.role}}</td>
+
+            {{! DELETE form }}
+            <form id='delete_account_form'>
+                <input type='hidden' name='delete_account_id' value='{{this.account_id}}' />
+                <input type='hidden' name='delete_account_number' value='{{this.account_number}}' />
+                <td>
+                    <button type='submit'>
+                        Delete
+                    </button>
+                </td>
+            </form>
+        </tr>
+        {{/each}}
+    </tbody>
+</table>
