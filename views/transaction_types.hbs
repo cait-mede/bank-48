@@ -1,3 +1,8 @@
+{{!-- 
+    Citation for the following file:// Date: 05/07/2025
+    Adapted from: Activity 2 - Connect webapp to database
+    Source URL: https://canvas.oregonstate.edu/courses/1999601/assignments/10006370
+--}}
 <h1>Transacation Types</h1>
 
 {{! READ table }}
@@ -5,12 +10,14 @@
     <thead>
         {{! For the table header row, we print the DB attribute names }}
         <tr>
-            {{#each types.[0]}}
             <th>
-                {{@key}}
+                ID
             </th>
-            {{/each}}
-            <th></th>
+           
+            <th>
+                Transaction Type
+            </th>
+           
         </tr>
     </thead>
 
@@ -18,6 +25,7 @@
         {{! For each row, print the id, fname, lname, homeworld and age }}
         {{#each types}}
         <tr>
+            <td>{{this.transaction_type_id}}</td>
             <td>{{this.transaction_type}}</td>
         </tr>
         {{/each}}

@@ -5,11 +5,11 @@
     <thead>
         {{! For the table header row, we print the DB attribute names }}
         <tr>
-            {{#each customers_accounts.[0]}}
-            <th>
-                {{@key}}
-            </th>
-            {{/each}}
+            
+            <th>ID</th>
+            <th>Customer Name</th>
+            <th>Account Number</th>
+            <th>Role</th>
             <th></th>
         </tr>
     </thead>
@@ -19,8 +19,8 @@
         {{#each customers_accounts}}
         <tr>
             <td>{{this.customer_account_id}}</td>
-            <td>{{this.customer_id}}</td>
-            <td>{{this.account_id}}</td>
+            <td>{{this.customer_name}}</td>
+            <td>{{this.account_number}}</td>
             <td>{{this.role}}</td>
 
             {{! DELETE form }}
@@ -37,3 +37,83 @@
         {{/each}}
     </tbody>
 </table>
+
+<h2>Create Customer Account</h2>
+<form class="caForm" id="create_ca_form" method="POST" action="/customer-accounts/create">
+  <label for="create_first_name">First Name:</label>
+  <input type="text" name="first_name" id="create_first_name" required />
+
+  <label for="create_middle_name">Middle Name:</label>
+  <input type="text" name="middle_name" id="create_middle_name" />
+
+  <label for="create_last_name">Last Name:</label>
+  <input type="text" name="last_name" id="create_last_name" required />
+
+  <label for="create_phone_number">Phone Number:</label>
+  <input type="text" name="phone_number" id="create_phone_number" required />
+
+  <label for="create_email">Email:</label>
+  <input type="text" name="email" id="create_email" />
+
+  <br />
+
+  <label for="create_account_number">Account Number:</label>
+  <input type="text" name="account_number" id="create_account_number" required />
+  <br />
+  <label for="create_role">Role:</label>
+  <select name="role" id="create_role" required>
+    <option value="" disabled selected>Select a Role</option>
+    <option value="Primary">Primary</option>
+    <option value="Secondary">Secondary</option>
+  </select>
+
+  <br />
+  <button type="submit">Create Account</button>
+</form>
+
+
+{{! UPDATE form }}
+<h2>Update Customer Account</h2>
+<form class='caForm' id='update_ca_form'>
+    <label for='update_customer_account_id'>Customer Account to Update: </label>
+    <select name='update_customer_account_id' id='update_customer_account_id' required>
+        <option value='' disabled selected>Select a Customer Account</option>
+        {{#each customers_accounts}}
+        <option value='{{this.customer_account_id}}' required>
+            {{this.customer_account_id}}
+        </option>
+        {{/each}}
+    </select>
+    <label for='update_account_id'> </label>
+    </br>
+    <label for='update_person_first_name'>First Name: </label>
+    <input type='text' name='update_person_first_name' id='update_person_first_name' required />
+
+    <label for='update_person_middle_name'>Middle Name: </label>
+    <input type='text' name='update_person_middle_name' id='update_person_middle_name'/>
+
+    <label for='update_person_last_name'>Last Name: </label>
+    <input type='text' name='update_person_last_name' id='update_person_last_name' required/>
+
+    <label for='update_person_phone_number'>Phone Number: </label>
+    <input type='text' name='update_person_phone_number' id='update_person_phone_number' required/>
+
+    <label for='update_person_email'>Email: </label>
+    <input type='text' name='update_person_email' id='update_person_email'/>
+
+    </br>
+    <label for='update_account_id'>Account Number: </label>
+    <input type='text' name='update_account_number' id='update_account_number'/>
+    </br>
+
+    <label for='update_role'>Role: </label>
+    <select name="update_role" id="update_role" required>
+        <option value="" disabled selected>Select a Role</option>
+        <option value="Primary">Primary</option>
+        <option value="Secondary">Secondary</option>
+    </select>
+
+    
+    </br>
+    <input type='submit' />
+</form>
