@@ -1,6 +1,10 @@
 // ########################################
 // ########## SETUP
 
+// Citation for the following file:// Date: 05/07/2025
+// Adapted from: Activity 2 - Connect webapp to database
+// Source URL: https://canvas.oregonstate.edu/courses/1999601/assignments/10006370
+
 // Express
 const express = require('express');
 const app = express();
@@ -32,29 +36,6 @@ app.get('/', async function (req, res) {
     }
 });
 
-app.get('/bsg-people', async function (req, res) {
-    try {
-        // Create and execute our queries
-        // In query1, we use a JOIN clause to display the names of the homeworlds
-        const query1 = `SELECT bsg_people.id, bsg_people.fname, bsg_people.lname, \
-            bsg_planets.name AS 'homeworld', bsg_people.age FROM bsg_people \
-            LEFT JOIN bsg_planets ON bsg_people.homeworld = bsg_planets.id;`;
-        const query2 = 'SELECT * FROM bsg_planets;';
-        const [people] = await db.query(query1);
-        const [homeworlds] = await db.query(query2);
-
-        // Render the bsg-people.hbs file, and also send the renderer
-        //  an object that contains our bsg_people and bsg_homeworld information
-        res.render('bsg-people', { people: people, homeworlds: homeworlds });
-    } catch (error) {
-        console.error('Error executing queries:', error);
-        // Send a generic error message to the browser
-        res.status(500).send(
-            'An error occurred while executing the database queries.'
-        );
-    }
-});
-
 app.get('/customers', async function (req, res) {
     try {
  
@@ -73,7 +54,8 @@ app.get('/customers', async function (req, res) {
 app.get('/accounts', async function (req, res) {
     try {
  
-        const query1 = 'SELECT * FROM Accounts;';
+        const query1 = 'SELECT a.account_id, at.account_type, a.balance, a.account_number FROM Accounts a \
+                        JOIN Account_Types at ON a.account_type_id = at.account_type_id;';
         const [accounts] = await db.query(query1);
         const query2 = 'SELECT * FROM Account_Types';
         const [account_types] = await db.query(query2);
@@ -90,7 +72,7 @@ app.get('/accounts', async function (req, res) {
 app.get('/account_types', async function (req, res) {
     try {
  
-        const query1 = 'SELECT account_type FROM Account_Types;';
+        const query1 = 'SELECT * FROM Account_Types;';
         const [account_types] = await db.query(query1);
         res.render('account_types', { types: account_types});
     } catch (error) {
@@ -105,7 +87,7 @@ app.get('/account_types', async function (req, res) {
 app.get('/transaction_types', async function (req, res) {
     try {
  
-        const query1 = 'SELECT transaction_type FROM Transaction_Types;';
+        const query1 = 'SELECT * FROM Transaction_Types;';
         const [transaction_types] = await db.query(query1);
         res.render('transaction_types', { types: transaction_types});
     } catch (error) {
@@ -144,9 +126,13 @@ app.get('/transactions', async function (req, res) {
 app.get('/customers_accounts', async function (req, res) {
     try {
  
-        const query1 = 'SELECT * FROM Customers_Accounts;';
+        const query1 = 'SELECT ca.customer_account_id, CONCAT(c.first_name, " ", c.last_name) AS customer_name, a.account_number, ca.role \
+                        FROM Customers_Accounts ca \
+                        JOIN Customers c ON c.customer_id = ca.customer_id \
+                        JOIN Accounts a ON a.account_id = ca.account_id;'
+                        
         const [customers_accounts] = await db.query(query1);
-        res.render('customers_accounts', { accounts: customers_accounts});
+        res.render('customers_accounts', { customers_accounts: customers_accounts});
     } catch (error) {
         console.error('Error executing queries:', error);
         // Send a generic error message to the browser
