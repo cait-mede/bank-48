@@ -4,18 +4,11 @@
 -- MySQL Workbench Forward Engineering
 -- Modified and Enhanced by Team 48 - Caitlin Mede & Barry Guan
 
-<<<<<<< Updated upstream
--- update DDL to be hand authored
-SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
-SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
-SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
-=======
-DROP PROCEDURE IF EXISTS ResetSchema2;
-DROP PROCEDURE IF EXISTS DeleteCustomer2;
+DROP PROCEDURE IF EXISTS ResetSchema;
+DROP PROCEDURE IF EXISTS DeleteCustomer;
 DELIMITER //
->>>>>>> Stashed changes
 
-CREATE PROCEDURE ResetSchema2()
+CREATE PROCEDURE ResetSchema()
 BEGIN
     SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
     SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
@@ -37,8 +30,7 @@ BEGIN
       `business_name` VARCHAR(45) NULL,
       `email` VARCHAR(45) NULL,
       PRIMARY KEY (`customer_id`),
-      UNIQUE INDEX `customers_id_UNIQUE` (`customer_id` ASC))
-    ENGINE = InnoDB;
+      UNIQUE INDEX `customers_id_UNIQUE` (`customer_id` ASC));
 
 
     -- -----------------------------------------------------
@@ -51,8 +43,7 @@ BEGIN
       `account_type` VARCHAR(45) NOT NULL,
       PRIMARY KEY (`account_type_id`),
       UNIQUE INDEX `account_type_id_UNIQUE` (`account_type_id` ASC),
-      UNIQUE INDEX `account_type_UNIQUE` (`account_type` ASC))
-    ENGINE = InnoDB;
+      UNIQUE INDEX `account_type_UNIQUE` (`account_type` ASC));
 
 
     -- -----------------------------------------------------
@@ -73,8 +64,7 @@ BEGIN
         FOREIGN KEY (`account_type_id`)
         REFERENCES `Account_Types` (`account_type_id`)
         ON DELETE NO ACTION
-        ON UPDATE NO ACTION)
-    ENGINE = InnoDB;
+        ON UPDATE NO ACTION);
 
 
     -- -----------------------------------------------------
@@ -87,8 +77,7 @@ BEGIN
       `transaction_type` VARCHAR(45) NOT NULL,
       PRIMARY KEY (`transaction_type_id`),
       UNIQUE INDEX `transaction_type_id_UNIQUE` (`transaction_type_id` ASC),
-      UNIQUE INDEX `transaction_type_UNIQUE` (`transaction_type` ASC))
-    ENGINE = InnoDB;
+      UNIQUE INDEX `transaction_type_UNIQUE` (`transaction_type` ASC));
 
 
     -- -----------------------------------------------------
@@ -121,8 +110,7 @@ BEGIN
         FOREIGN KEY (`destination_account_id`)
         REFERENCES `Accounts` (`account_id`)
         ON DELETE NO ACTION
-        ON UPDATE NO ACTION)
-    ENGINE = InnoDB;
+        ON UPDATE NO ACTION);
 
 
     -- -----------------------------------------------------
@@ -130,14 +118,14 @@ BEGIN
     -- i.e. if the transaction is of type 'withdraw', 
     -- origin_account_id should not be null, 
     -- but destination_account_id should be null
-    --Citation for use of AI Tools:
-    --Date: 05/07/2025
-    --Prompts used to generate SQL for check constraints. 
-    --how can I constrain one attribute to be not null based off the type of another attribute? 
-    --AI Source URL: https://chatgpt.com/
+    -- Citation for use of AI Tools:
+    -- Date: 05/07/2025
+    -- Prompts used to generate SQL for check constraints. 
+    -- how can I constrain one attribute to be not null based off the type of another attribute? 
+    -- AI Source URL: https://chatgpt.com/
     -- -----------------------------------------------------
     -- Add the first constraint
-    /*
+    
     ALTER TABLE `Transactions`
     ADD CONSTRAINT check_origin_or_destination
     CHECK (
@@ -165,7 +153,6 @@ BEGIN
     CHECK (
         transaction_type_id != 3 OR (origin_account_id IS NOT NULL AND destination_account_id IS NOT NULL)
     );
-    */
 
     -- -----------------------------------------------------
     -- Table `Customers_Accounts`
@@ -191,9 +178,7 @@ BEGIN
         FOREIGN KEY (`account_id`)
         REFERENCES `Accounts` (`account_id`)
         ON DELETE CASCADE
-        ON UPDATE NO ACTION) 
-    
-    ENGINE = InnoDB;
+        ON UPDATE NO ACTION);
 
 
 
@@ -223,11 +208,11 @@ BEGIN
     -- -----------------------------------------------------
     -- Sample Data - Customers
     -- --Citation for use of AI Tools:
-    --Date: 05/07/2025
-    --Prompts used to generate SQL for data entries into customers table. 
-    --can you give me an example of a list of customers with the attributes first_name, last_name,
-    --middle_name, phone_number, business_name, and email? business_name and middle_name can be null. 
-    --AI Source URL: https://chatgpt.com/
+    -- Date: 05/07/2025
+    -- Prompts used to generate SQL for data entries into customers table. 
+    -- can you give me an example of a list of customers with the attributes first_name, last_name,
+    -- middle_name, phone_number, business_name, and email? business_name and middle_name can be null. 
+    -- AI Source URL: https://chatgpt.com/
     -- -----------------------------------------------------
 
     INSERT INTO `Customers` (first_name, last_name, middle_name, phone_number, business_name, email)
@@ -279,12 +264,52 @@ BEGIN
     (1, null, 1, 100.00),
     (2, 2, null, 500.00),
     (3, 5, 4, 1000.00);
+
+    -- -----------------------------------------------------
+    -- Trigger a balance change after a transaction 
+    -- (Credit: Generated by Chat GPT)
+    -- Citation for use of AI Tools:
+    -- Date: 05/07/2025
+    -- Prompts used to generate SQL for triggering balance changes. 
+    -- how can I update the value of an attribute after inserting a row in a transaction table? 
+    -- how can I recreate a trigger in a stored procedure that I am using to drop and recreate my tables? 
+    -- AI Source URL: https://chatgpt.com/
+    -- -----------------------------------------------------
+
+    DROP TRIGGER IF EXISTS update_balance_after_transaction;
+    -- create string for sql that creates trigger
+    SET @trigger_sql = '
+    CREATE TRIGGER update_balance_after_transaction
+    AFTER INSERT ON Transactions
+    FOR EACH ROW
+    BEGIN
+        -- Decrease balance for the origin account (if exists)
+        IF NEW.origin_account_id IS NOT NULL THEN
+            UPDATE Accounts
+            SET balance = balance - NEW.amount
+            WHERE account_id = NEW.origin_account_id;
+        END IF;
+
+        -- Increase balance for the destination account (if exists)
+        IF NEW.destination_account_id IS NOT NULL THEN
+            UPDATE Accounts
+            SET balance = balance + NEW.amount
+            WHERE account_id = NEW.destination_account_id;
+        END IF;
+    END;
+    ';
+    -- parse the string into sql
+    PREPARE stmt FROM @trigger_sql;
+    -- execute the sql
+    EXECUTE stmt;
+    -- clean the prepared statement from memory
+    DEALLOCATE PREPARE stmt;
   END
   //
 
   -- Delete Customer Procedure
 
-  CREATE PROCEDURE DeleteCustomer2(
+  CREATE PROCEDURE DeleteCustomer(
       in p_customer_id int
   )
   BEGIN
@@ -293,35 +318,4 @@ BEGIN
 
 DELIMITER ;
 
--- -----------------------------------------------------
--- Trigger a balance change after a transaction 
--- (Credit: Generated by Chat GPT)
---Citation for use of AI Tools:
---Date: 05/07/2025
---Prompts used to generate SQL for triggering balance changes. 
---how can I update the value of an attribute after inserting a row in a transaction table? 
---AI Source URL: https://chatgpt.com/
--- -----------------------------------------------------
 
-/*
-const triggerSQL = `
-CREATE TRIGGER update_balance_after_transaction
-AFTER INSERT ON \`Transactions\`
-FOR EACH ROW
-BEGIN
-    -- Decrease balance for the origin account (if exists)
-    IF NEW.origin_account_id IS NOT NULL THEN
-        UPDATE \`Accounts\`
-        SET balance = balance - NEW.amount
-        WHERE account_id = NEW.origin_account_id;
-    END IF;
-
-    -- Increase balance for the destination account (if exists)
-    IF NEW.destination_account_id IS NOT NULL THEN
-        UPDATE \`Accounts\`
-        SET balance = balance + NEW.amount
-        WHERE account_id = NEW.destination_account_id;
-    END IF;
-END;
-`;
-*/
