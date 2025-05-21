@@ -13,7 +13,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
 const PORT = 48488;
-const PORT = 48488;
 
 // Database
 const db = require('./database/db-connector');
