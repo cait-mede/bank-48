@@ -5,7 +5,6 @@
 -- Modified and Enhanced by Team 48 - Caitlin Mede & Barry Guan
 
 DROP PROCEDURE IF EXISTS ResetSchema;
-DROP PROCEDURE IF EXISTS DeleteCustomer;
 DELIMITER //
 
 CREATE PROCEDURE ResetSchema()
@@ -301,15 +300,6 @@ BEGIN
     DEALLOCATE PREPARE stmt;
   END
   //
-
-  -- Delete Customer Procedure
-
-  CREATE PROCEDURE DeleteCustomer(
-      in p_customer_id int
-  )
-  BEGIN
-      DELETE FROM Customers WHERE customer_id = p_customer_id;
-  END//
 
 DELIMITER ;
 
