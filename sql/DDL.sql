@@ -4,297 +4,303 @@
 -- MySQL Workbench Forward Engineering
 -- Modified and Enhanced by Team 48 - Caitlin Mede & Barry Guan
 
-SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
-SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
-SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
+DROP PROCEDURE IF EXISTS ResetSchema;
+DELIMITER //
 
--- -----------------------------------------------------
-
--- -----------------------------------------------------
--- Table `Customers`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `Customers` ;
-
-CREATE TABLE IF NOT EXISTS `Customers` (
-  `customer_id` INT NOT NULL AUTO_INCREMENT,
-  `first_name` VARCHAR(45) NOT NULL,
-  `last_name` VARCHAR(45) NOT NULL,
-  `middle_name` VARCHAR(45) NULL,
-  `phone_number` VARCHAR(45) NOT NULL,
-  `business_name` VARCHAR(45) NULL,
-  `email` VARCHAR(45) NULL,
-  PRIMARY KEY (`customer_id`),
-  UNIQUE INDEX `customers_id_UNIQUE` (`customer_id` ASC))
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
--- Table `Account_Types`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `Account_Types` ;
-
-CREATE TABLE IF NOT EXISTS `Account_Types` (
-  `account_type_id` INT NOT NULL AUTO_INCREMENT,
-  `account_type` VARCHAR(45) NOT NULL,
-  PRIMARY KEY (`account_type_id`),
-  UNIQUE INDEX `account_type_id_UNIQUE` (`account_type_id` ASC),
-  UNIQUE INDEX `account_type_UNIQUE` (`account_type` ASC))
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
--- Table `Accounts`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `Accounts` ;
-
-CREATE TABLE IF NOT EXISTS `Accounts` (
-  `account_id` INT NOT NULL AUTO_INCREMENT,
-  `account_type_id` INT NOT NULL,
-  `balance` DECIMAL(18,2) NOT NULL,
-  `account_number` VARCHAR(12) DEFAULT (LPAD(FLOOR(RAND() * 1000000000000), 12, '0')),
-  PRIMARY KEY (`account_id`),
-  UNIQUE INDEX `account_id_UNIQUE` (`account_id` ASC),
-  INDEX `fk_accounts_account_types1_idx` (`account_type_id` ASC),
-  UNIQUE INDEX `account_number_UNIQUE` (`account_number` ASC),
-  CONSTRAINT `fk_accounts_account_types1`
-    FOREIGN KEY (`account_type_id`)
-    REFERENCES `Account_Types` (`account_type_id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
--- Table `Transaction_Types`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `Transaction_Types` ;
-
-CREATE TABLE IF NOT EXISTS `Transaction_Types` (
-  `transaction_type_id` INT NOT NULL AUTO_INCREMENT,
-  `transaction_type` VARCHAR(45) NOT NULL,
-  PRIMARY KEY (`transaction_type_id`),
-  UNIQUE INDEX `transaction_type_id_UNIQUE` (`transaction_type_id` ASC),
-  UNIQUE INDEX `transaction_type_UNIQUE` (`transaction_type` ASC))
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
--- Table `Transactions`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `Transactions` ;
-
-CREATE TABLE IF NOT EXISTS `Transactions` (
-  `transaction_id` INT NOT NULL AUTO_INCREMENT,
-  `destination_account_id` INT NULL COMMENT 'Check constraint will be added to ensure either origin_account_id or destination_account_id is NOT NULL',
-  `transaction_type_id` INT NOT NULL,
-  `origin_account_id` INT NULL,
-  `amount` DECIMAL(18,2) NOT NULL,
-  PRIMARY KEY (`transaction_id`),
-  INDEX `fk_transactions_accounts1_idx` (`origin_account_id` ASC),
-  INDEX `fk_transactions_transaction_types1_idx` (`transaction_type_id` ASC),
-  INDEX `fk_transactions_accounts2_idx` (`destination_account_id` ASC),
-  UNIQUE INDEX `transaction_id_UNIQUE` (`transaction_id` ASC),
-  CONSTRAINT `fk_transactions_accounts1`
-    FOREIGN KEY (`origin_account_id`)
-    REFERENCES `Accounts` (`account_id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_transactions_transaction_types1`
-    FOREIGN KEY (`transaction_type_id`)
-    REFERENCES `Transaction_Types` (`transaction_type_id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_transactions_accounts2`
-    FOREIGN KEY (`destination_account_id`)
-    REFERENCES `Accounts` (`account_id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
--- Alter Table Transactions with necessary Check constraints 
--- i.e. if the transaction is of type 'withdraw', 
--- origin_account_id should not be null, 
--- but destination_account_id should be null
---Citation for use of AI Tools:
---Date: 05/07/2025
---Prompts used to generate SQL for check constraints. 
---how can I constrain one attribute to be not null based off the type of another attribute? 
---AI Source URL: https://chatgpt.com/
--- -----------------------------------------------------
--- Add the first constraint
-ALTER TABLE `Transactions`
-ADD CONSTRAINT check_origin_or_destination
-CHECK (
-    origin_account_id IS NOT NULL
-    OR destination_account_id IS NOT NULL
-);
-
--- Add the second constraint for transaction type 1 - Withdraw
-ALTER TABLE `Transactions`
-ADD CONSTRAINT check_transaction_type_1
-CHECK (
-    transaction_type_id != 1 OR (origin_account_id IS NOT NULL AND destination_account_id IS NULL)
-);
-
--- Add the third constraint for transaction type 2 - Deposit 
-ALTER TABLE `Transactions`
-ADD CONSTRAINT check_transaction_type_2
-CHECK (
-    transaction_type_id != 2 OR (origin_account_id IS NULL AND destination_account_id IS NOT NULL)
-);
-
--- Add the fourth constraint for transaction type 3 - Transfer
-ALTER TABLE `Transactions`
-ADD CONSTRAINT check_transaction_type_3
-CHECK (
-    transaction_type_id != 3 OR (origin_account_id IS NOT NULL AND destination_account_id IS NOT NULL)
-);
-
--- -----------------------------------------------------
--- Trigger a balance change after a transaction 
--- (Credit: Generated by Chat GPT)
---Citation for use of AI Tools:
---Date: 05/07/2025
---Prompts used to generate SQL for triggering balance changes. 
---how can I update the value of an attribute after inserting a row in a transaction table? 
---AI Source URL: https://chatgpt.com/
--- -----------------------------------------------------
-
-DELIMITER $$
-
-CREATE TRIGGER update_balance_after_transaction
-AFTER INSERT ON `Transactions`
-FOR EACH ROW
+CREATE PROCEDURE ResetSchema()
 BEGIN
-    -- Decrease balance for the origin account (if exists)
-    IF NEW.origin_account_id IS NOT NULL THEN
-        UPDATE `Accounts`
-        SET balance = balance - NEW.amount
-        WHERE account_id = NEW.origin_account_id;
-    END IF;
+    SET FOREIGN_KEY_CHECKS=0;
+    -- -----------------------------------------------------
 
-    -- Increase balance for the destination account (if exists)
-    IF NEW.destination_account_id IS NOT NULL THEN
-        UPDATE `Accounts`
-        SET balance = balance + NEW.amount
-        WHERE account_id = NEW.destination_account_id;
-    END IF;
-END$$
+    -- -----------------------------------------------------
+    -- Table `Customers`
+    -- -----------------------------------------------------
+    DROP TABLE IF EXISTS `Customers` ;
+
+    CREATE TABLE IF NOT EXISTS `Customers` (
+      `customer_id` INT NOT NULL AUTO_INCREMENT,
+      `first_name` VARCHAR(45) NOT NULL,
+      `last_name` VARCHAR(45) NOT NULL,
+      `middle_name` VARCHAR(45) NULL,
+      `phone_number` VARCHAR(45) NOT NULL,
+      `business_name` VARCHAR(45) NULL,
+      `email` VARCHAR(45) NULL,
+      PRIMARY KEY (`customer_id`),
+      UNIQUE INDEX `customers_id_UNIQUE` (`customer_id` ASC));
+
+
+    -- -----------------------------------------------------
+    -- Table `Account_Types`
+    -- -----------------------------------------------------
+    DROP TABLE IF EXISTS `Account_Types` ;
+
+    CREATE TABLE IF NOT EXISTS `Account_Types` (
+      `account_type_id` INT NOT NULL AUTO_INCREMENT,
+      `account_type` VARCHAR(45) NOT NULL,
+      PRIMARY KEY (`account_type_id`),
+      UNIQUE INDEX `account_type_id_UNIQUE` (`account_type_id` ASC),
+      UNIQUE INDEX `account_type_UNIQUE` (`account_type` ASC));
+
+
+    -- -----------------------------------------------------
+    -- Table `Accounts`
+    -- -----------------------------------------------------
+    DROP TABLE IF EXISTS `Accounts` ;
+
+    CREATE TABLE IF NOT EXISTS `Accounts` (
+      `account_id` INT NOT NULL AUTO_INCREMENT,
+      `account_type_id` INT NOT NULL,
+      `balance` DECIMAL(18,2) NOT NULL,
+      `account_number` VARCHAR(12) DEFAULT (LPAD(FLOOR(RAND() * 1000000000000), 12, '0')),
+      PRIMARY KEY (`account_id`),
+      UNIQUE INDEX `account_id_UNIQUE` (`account_id` ASC),
+      INDEX `fk_accounts_account_types1_idx` (`account_type_id` ASC),
+      UNIQUE INDEX `account_number_UNIQUE` (`account_number` ASC),
+      CONSTRAINT `fk_accounts_account_types1`
+        FOREIGN KEY (`account_type_id`)
+        REFERENCES `Account_Types` (`account_type_id`)
+        ON DELETE NO ACTION
+        ON UPDATE NO ACTION);
+
+
+    -- -----------------------------------------------------
+    -- Table `Transaction_Types`
+    -- -----------------------------------------------------
+    DROP TABLE IF EXISTS `Transaction_Types` ;
+
+    CREATE TABLE IF NOT EXISTS `Transaction_Types` (
+      `transaction_type_id` INT NOT NULL AUTO_INCREMENT,
+      `transaction_type` VARCHAR(45) NOT NULL,
+      PRIMARY KEY (`transaction_type_id`),
+      UNIQUE INDEX `transaction_type_id_UNIQUE` (`transaction_type_id` ASC),
+      UNIQUE INDEX `transaction_type_UNIQUE` (`transaction_type` ASC));
+
+
+    -- -----------------------------------------------------
+    -- Table `Transactions`
+    -- -----------------------------------------------------
+    DROP TABLE IF EXISTS `Transactions` ;
+
+    CREATE TABLE IF NOT EXISTS `Transactions` (
+      `transaction_id` INT NOT NULL AUTO_INCREMENT,
+      `destination_account_id` INT NULL COMMENT 'Check constraint will be added to ensure either origin_account_id or destination_account_id is NOT NULL',
+      `transaction_type_id` INT NOT NULL,
+      `origin_account_id` INT NULL,
+      `amount` DECIMAL(18,2) NOT NULL,
+      PRIMARY KEY (`transaction_id`),
+      INDEX `fk_transactions_accounts1_idx` (`origin_account_id` ASC),
+      INDEX `fk_transactions_transaction_types1_idx` (`transaction_type_id` ASC),
+      INDEX `fk_transactions_accounts2_idx` (`destination_account_id` ASC),
+      UNIQUE INDEX `transaction_id_UNIQUE` (`transaction_id` ASC),
+      CONSTRAINT `fk_transactions_accounts1`
+        FOREIGN KEY (`origin_account_id`)
+        REFERENCES `Accounts` (`account_id`)
+        ON DELETE NO ACTION
+        ON UPDATE NO ACTION,
+      CONSTRAINT `fk_transactions_transaction_types1`
+        FOREIGN KEY (`transaction_type_id`)
+        REFERENCES `Transaction_Types` (`transaction_type_id`)
+        ON DELETE NO ACTION
+        ON UPDATE NO ACTION,
+      CONSTRAINT `fk_transactions_accounts2`
+        FOREIGN KEY (`destination_account_id`)
+        REFERENCES `Accounts` (`account_id`)
+        ON DELETE NO ACTION
+        ON UPDATE NO ACTION);
+
+
+    -- -----------------------------------------------------
+    -- Alter Table Transactions with necessary Check constraints 
+    -- i.e. if the transaction is of type 'withdraw', 
+    -- origin_account_id should not be null, 
+    -- but destination_account_id should be null
+    -- Citation for use of AI Tools:
+    -- Date: 05/07/2025
+    -- Prompts used to generate SQL for check constraints. 
+    -- how can I constrain one attribute to be not null based off the type of another attribute? 
+    -- AI Source URL: https://chatgpt.com/
+    -- -----------------------------------------------------
+    -- Add the first constraint
+    
+    ALTER TABLE `Transactions`
+    ADD CONSTRAINT check_origin_or_destination
+    CHECK (
+        origin_account_id IS NOT NULL
+        OR destination_account_id IS NOT NULL
+    );
+
+    -- Add the second constraint for transaction type 1 - Withdraw
+    ALTER TABLE `Transactions`
+    ADD CONSTRAINT check_transaction_type_1
+    CHECK (
+        transaction_type_id != 1 OR (origin_account_id IS NOT NULL AND destination_account_id IS NULL)
+    );
+
+    -- Add the third constraint for transaction type 2 - Deposit 
+    ALTER TABLE `Transactions`
+    ADD CONSTRAINT check_transaction_type_2
+    CHECK (
+        transaction_type_id != 2 OR (origin_account_id IS NULL AND destination_account_id IS NOT NULL)
+    );
+
+    -- Add the fourth constraint for transaction type 3 - Transfer
+    ALTER TABLE `Transactions`
+    ADD CONSTRAINT check_transaction_type_3
+    CHECK (
+        transaction_type_id != 3 OR (origin_account_id IS NOT NULL AND destination_account_id IS NOT NULL)
+    );
+
+    -- -----------------------------------------------------
+    -- Table `Customers_Accounts`
+    -- -----------------------------------------------------
+    DROP TABLE IF EXISTS `Customers_Accounts` ;
+
+    CREATE TABLE IF NOT EXISTS `Customers_Accounts` (
+      `customer_account_id` INT NOT NULL AUTO_INCREMENT,
+      `customer_id` INT NOT NULL,
+      `account_id` INT NOT NULL,
+      `role` ENUM('primary', 'secondary') NOT NULL,
+      PRIMARY KEY (`customer_account_id`),
+      INDEX `fk_customers_has_accounts_accounts1_idx` (`account_id` ASC),
+      INDEX `fk_customers_has_accounts_customers1_idx` (`customer_id` ASC),
+      UNIQUE INDEX `customer_account_id_UNIQUE` (`customer_account_id` ASC),
+      UNIQUE (`customer_id`, `account_id`),
+      CONSTRAINT `fk_customers_has_accounts_customers1`
+        FOREIGN KEY (`customer_id`)
+        REFERENCES `Customers` (`customer_id`)
+        ON DELETE CASCADE
+        ON UPDATE NO ACTION,
+      CONSTRAINT `fk_customers_has_accounts_accounts1`
+        FOREIGN KEY (`account_id`)
+        REFERENCES `Accounts` (`account_id`)
+        ON DELETE CASCADE
+        ON UPDATE NO ACTION);
+
+
+
+    SET FOREIGN_KEY_CHECKS=1;
+
+
+    -- -----------------------------------------------------
+    -- Sample Data - Account Type (Category) 
+    -- -----------------------------------------------------
+
+    INSERT INTO `Account_Types` (`account_type`) VALUES
+    ('Checking'),
+    ('Savings'),
+    ('High Yield Savings');
+
+    -- -----------------------------------------------------
+    -- Sample Data - Transaction Type (Category) 
+    -- -----------------------------------------------------
+
+    INSERT INTO `Transaction_Types` (`transaction_type`) VALUES
+    ('Withdrawal'),
+    ('Deposit'),
+    ('Transfer');
+
+    -- -----------------------------------------------------
+    -- Sample Data - Customers
+    -- --Citation for use of AI Tools:
+    -- Date: 05/07/2025
+    -- Prompts used to generate SQL for data entries into customers table. 
+    -- can you give me an example of a list of customers with the attributes first_name, last_name,
+    -- middle_name, phone_number, business_name, and email? business_name and middle_name can be null. 
+    -- AI Source URL: https://chatgpt.com/
+    -- -----------------------------------------------------
+
+    INSERT INTO `Customers` (first_name, last_name, middle_name, phone_number, business_name, email)
+    VALUES 
+    ('Alice', 'Smith', 'Marie', '555-123-4567', 'Alice Co.', 'alice.smith@example.com'),
+    ('Bob', 'Johnson', NULL, '555-234-5678', NULL, 'bob.johnson@example.com'),
+    ('Charlie', 'Brown', 'Lee', '555-345-6789', 'Charlie Designs', 'charlie.brown@example.com'),
+    ('Diana', 'Prince', NULL, '555-456-7890', 'Wonder Boutique', 'diana.prince@example.com'),
+    ('Evan', 'Wright', 'James', '555-567-8901', NULL, 'evan.wright@example.com'),
+    ('Fiona', 'Garcia', 'Rose', '555-678-9012', 'Fiona Foods', 'fiona.garcia@example.com'),
+    ('George', 'Martinez', NULL, '555-789-0123', NULL, 'george.martinez@example.com'),
+    ('Hannah', 'Lee', 'Grace', '555-890-1234', 'Hannah Art', 'hannah.lee@example.com'),
+    ('Ian', 'Nguyen', NULL, '555-901-2345', NULL, 'ian.nguyen@example.com'),
+    ('Julia', 'Kim', 'Ann', '555-012-3456', 'Julia Consulting', 'julia.kim@example.com');
+
+    -- -----------------------------------------------------
+    -- Sample Data - Accounts 
+    -- -----------------------------------------------------
+
+    INSERT INTO `Accounts` (account_type_id, balance)
+    VALUES
+    (1, 1500.00),
+    (2, 2300.50),
+    (1, 750.75),
+    (3, 12000.00),
+    (2, 50.25);
+
+    -- -----------------------------------------------------
+    -- Sample Data - Customers_Accounts 
+    -- -----------------------------------------------------
+
+    INSERT INTO `Customers_Accounts`(customer_id, account_id, role)
+    VALUES
+    (1, 1, 'primary'),
+    (2, 2, 'primary'),
+    (3, 3, 'primary'),
+    (4, 4, 'primary'),
+    (5, 5, 'primary'),
+    (6, 1, 'secondary');
+
+    -- -----------------------------------------------------
+    -- Sample Data - Transactions 
+    -- (** Note that this INSERT will trigger changes to 
+    --     the Accounts table for balance changes **) 
+    -- -----------------------------------------------------
+
+    INSERT INTO `Transactions`(transaction_type_id, destination_account_id, origin_account_id, amount)
+    VALUES
+    (1, null, 1, 100.00),
+    (2, 2, null, 500.00),
+    (3, 5, 4, 1000.00);
+
+    -- -----------------------------------------------------
+    -- Trigger a balance change after a transaction 
+    -- (Credit: Generated by Chat GPT)
+    -- Citation for use of AI Tools:
+    -- Date: 05/07/2025
+    -- Prompts used to generate SQL for triggering balance changes. 
+    -- how can I update the value of an attribute after inserting a row in a transaction table? 
+    -- how can I recreate a trigger in a stored procedure that I am using to drop and recreate my tables? 
+    -- AI Source URL: https://chatgpt.com/
+    -- -----------------------------------------------------
+
+    DROP TRIGGER IF EXISTS update_balance_after_transaction;
+    -- create string for sql that creates trigger
+    SET @trigger_sql = '
+    CREATE TRIGGER update_balance_after_transaction
+    AFTER INSERT ON Transactions
+    FOR EACH ROW
+    BEGIN
+        -- Decrease balance for the origin account (if exists)
+        IF NEW.origin_account_id IS NOT NULL THEN
+            UPDATE Accounts
+            SET balance = balance - NEW.amount
+            WHERE account_id = NEW.origin_account_id;
+        END IF;
+
+        -- Increase balance for the destination account (if exists)
+        IF NEW.destination_account_id IS NOT NULL THEN
+            UPDATE Accounts
+            SET balance = balance + NEW.amount
+            WHERE account_id = NEW.destination_account_id;
+        END IF;
+    END;
+    ';
+    -- parse the string into sql
+    PREPARE stmt FROM @trigger_sql;
+    -- execute the sql
+    EXECUTE stmt;
+    -- clean the prepared statement from memory
+    DEALLOCATE PREPARE stmt;
+  END
+  //
 
 DELIMITER ;
 
 
--- -----------------------------------------------------
--- Table `Customers_Accounts`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `Customers_Accounts` ;
-
-CREATE TABLE IF NOT EXISTS `Customers_Accounts` (
-  `customer_account_id` INT NOT NULL AUTO_INCREMENT,
-  `customer_id` INT NOT NULL,
-  `account_id` INT NOT NULL,
-  `role` ENUM('primary', 'secondary') NOT NULL,
-  PRIMARY KEY (`customer_account_id`),
-  INDEX `fk_customers_has_accounts_accounts1_idx` (`account_id` ASC),
-  INDEX `fk_customers_has_accounts_customers1_idx` (`customer_id` ASC),
-  UNIQUE INDEX `customer_account_id_UNIQUE` (`customer_account_id` ASC),
-  UNIQUE (`customer_id`, `account_id`),
-  CONSTRAINT `fk_customers_has_accounts_customers1`
-    FOREIGN KEY (`customer_id`)
-    REFERENCES `Customers` (`customer_id`)
-    ON DELETE CASCADE
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_customers_has_accounts_accounts1`
-    FOREIGN KEY (`account_id`)
-    REFERENCES `Accounts` (`account_id`)
-    ON DELETE CASCADE
-    ON UPDATE NO ACTION) 
- 
-ENGINE = InnoDB;
-
-
-
-SET SQL_MODE=@OLD_SQL_MODE;
-SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
-SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
-
-
--- -----------------------------------------------------
--- Sample Data - Account Type (Category) 
--- -----------------------------------------------------
-
-INSERT INTO `Account_Types` (`account_type`) VALUES
-('Checking'),
-('Savings'),
-('High Yield Savings');
-
--- -----------------------------------------------------
--- Sample Data - Transaction Type (Category) 
--- -----------------------------------------------------
-
-INSERT INTO `Transaction_Types` (`transaction_type`) VALUES
-('Withdrawal'),
-('Deposit'),
-('Transfer');
-
--- -----------------------------------------------------
--- Sample Data - Customers
--- --Citation for use of AI Tools:
---Date: 05/07/2025
---Prompts used to generate SQL for data entries into customers table. 
---can you give me an example of a list of customers with the attributes first_name, last_name,
---middle_name, phone_number, business_name, and email? business_name and middle_name can be null. 
---AI Source URL: https://chatgpt.com/
--- -----------------------------------------------------
-
-INSERT INTO `Customers` (first_name, last_name, middle_name, phone_number, business_name, email)
-VALUES 
-('Alice', 'Smith', 'Marie', '555-123-4567', 'Alice Co.', 'alice.smith@example.com'),
-('Bob', 'Johnson', NULL, '555-234-5678', NULL, 'bob.johnson@example.com'),
-('Charlie', 'Brown', 'Lee', '555-345-6789', 'Charlie Designs', 'charlie.brown@example.com'),
-('Diana', 'Prince', NULL, '555-456-7890', 'Wonder Boutique', 'diana.prince@example.com'),
-('Evan', 'Wright', 'James', '555-567-8901', NULL, 'evan.wright@example.com'),
-('Fiona', 'Garcia', 'Rose', '555-678-9012', 'Fiona Foods', 'fiona.garcia@example.com'),
-('George', 'Martinez', NULL, '555-789-0123', NULL, 'george.martinez@example.com'),
-('Hannah', 'Lee', 'Grace', '555-890-1234', 'Hannah Art', 'hannah.lee@example.com'),
-('Ian', 'Nguyen', NULL, '555-901-2345', NULL, 'ian.nguyen@example.com'),
-('Julia', 'Kim', 'Ann', '555-012-3456', 'Julia Consulting', 'julia.kim@example.com');
-
--- -----------------------------------------------------
--- Sample Data - Accounts 
--- -----------------------------------------------------
-
-INSERT INTO `Accounts` (account_type_id, balance)
-VALUES
-(1, 1500.00),
-(2, 2300.50),
-(1, 750.75),
-(3, 12000.00),
-(2, 50.25);
-
--- -----------------------------------------------------
--- Sample Data - Customers_Accounts 
--- -----------------------------------------------------
-
-INSERT INTO `Customers_Accounts`(customer_id, account_id, role)
-VALUES
-(1, 1, 'primary'),
-(2, 2, 'primary'),
-(3, 3, 'primary'),
-(4, 4, 'primary'),
-(5, 5, 'primary'),
-(6, 1, 'secondary');
-
--- -----------------------------------------------------
--- Sample Data - Transactions 
--- (** Note that this INSERT will trigger changes to 
---     the Accounts table for balance changes **) 
--- -----------------------------------------------------
-
-INSERT INTO `Transactions`(transaction_type_id, destination_account_id, origin_account_id, amount)
-VALUES
-(1, null, 1, 100.00),
-(2, 2, null, 500.00),
-(3, 5, 4, 1000.00);

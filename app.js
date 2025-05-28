@@ -12,7 +12,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
-const PORT = 48484;
+const PORT = 48488;
 
 // Database
 const db = require('./database/db-connector');
@@ -141,6 +141,43 @@ app.get('/customers_accounts', async function (req, res) {
         );
     }
 });
+
+app.get('/reset', async function (req, res) {
+    try {      
+        res.render('reset');          
+    } catch (error) {
+        console.error('Error executing queries:', error);
+        // Send a generic error message to the browser
+        res.status(500).send(
+            'An error occurred while executing the database queries.'
+        );
+    }
+});
+
+app.post('/reset', async (req,res) => {
+    try {
+        // Replace with your actual stored procedure name
+        await db.query('CALL ResetSchema()');
+        res.redirect('/');    
+        // res.status(200).send({ message: 'Database reset successful' });
+    } catch (error) {
+        console.error('Error calling reset procedure:', error);
+        res.status(500).send({ error: 'Failed to reset database' });
+    }
+})
+
+app.post('/delete_customer', async (req,res) => {
+    const {customer_id} = req.body;
+    try {
+        // Replace with your actual stored procedure name
+        await db.query('CALL DeleteCustomer(?)',[customer_id]);
+        res.redirect('/customers');    
+        // res.status(200).send({ message: 'Database reset successful' });
+    } catch (error) {
+        console.error('Error calling reset procedure:', error);
+        res.status(500).send({ error: 'Failed to reset database' });
+    }
+})
  
 
 // ########################################
