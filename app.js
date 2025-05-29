@@ -142,18 +142,6 @@ app.get('/customers_accounts', async function (req, res) {
     }
 });
 
-app.get('/reset', async function (req, res) {
-    try {      
-        res.render('reset');          
-    } catch (error) {
-        console.error('Error executing queries:', error);
-        // Send a generic error message to the browser
-        res.status(500).send(
-            'An error occurred while executing the database queries.'
-        );
-    }
-});
-
 app.post('/reset', async (req,res) => {
     try {
         // Replace with your actual stored procedure name
@@ -172,12 +160,68 @@ app.post('/delete_customer', async (req,res) => {
         // Replace with your actual stored procedure name
         await db.query('CALL DeleteCustomer(?)',[customer_id]);
         res.redirect('/customers');    
-        // res.status(200).send({ message: 'Database reset successful' });
+        // res.status(200).send({ message: 'Customer Deleted' });
     } catch (error) {
-        console.error('Error calling reset procedure:', error);
-        res.status(500).send({ error: 'Failed to reset database' });
+        console.error('Error calling Delete Customer procedure:', error);
+        res.status(500).send({ error: 'Failed to Delete Customer' });
     }
 })
+
+app.post('/create_customer', async (req,res) => {
+    const {first_name, middle_name, last_name, phone_number, email, business_name} = req.body;
+    try {
+        // Replace with your actual stored procedure name
+        await db.query('CALL CreateCustomer(?,?,?,?,?,?)',[first_name, middle_name, last_name, phone_number, email, business_name]);
+        res.redirect('/customers');    
+        // res.status(200).send({ message: 'Customer Added' });
+    } catch (error) {
+        console.error('Error calling Create Customer procedure:', error);
+        res.status(500).send({ error: 'Failed to Add Customer' });
+    }
+})
+
+app.post('/delete_customer_account', async (req,res) => {
+    const {customer_account_id} = req.body;
+    try {
+        // Replace with your actual stored procedure name
+        await db.query('CALL DeleteCustomerAccount(?)',[customer_account_id]);
+        res.redirect('/customers_accounts');    
+        // res.status(200).send({ message: 'Customer Account Deleted' });
+    } catch (error) {
+        console.error('Error calling Delete Customer procedure:', error);
+        res.status(500).send({ error: 'Failed to Delete Customer Account' });
+    }
+})
+
+app.post('/update_customer_account', async (req,res) => {
+    const {customer_account_id, first_name, last_name, phone_number, account_number, role} = req.body;
+    console.log(req.body);
+    try {
+        // Replace with your actual stored procedure name
+        await db.query('CALL UpdateCustomerAccount(?,?,?,?,?,?)',[first_name, last_name, phone_number, account_number, role, customer_account_id]);
+        res.redirect('/customers_accounts');    
+        // res.status(200).send({ message: 'Customer Account Updated' });
+    } catch (error) {
+        console.error('Error calling Update Customer procedure:', error);
+        res.status(500).send({ error: 'Failed to Update Customer Account' });
+    }
+})
+
+app.post('/create_customer_account', async (req,res) => {
+    const {first_name, last_name, phone_number, account_number, role} = req.body;
+    console.log(req.body);
+    try {
+        // Replace with your actual stored procedure name
+        await db.query('CALL CreateCustomerAccount(?,?,?,?,?)',[first_name, last_name, phone_number, account_number, role]);
+        res.redirect('/customers_accounts');    
+        // res.status(200).send({ message: 'Customer Account Created' });
+    } catch (error) {
+        console.error('Error calling Create Customer procedure:', error);
+        res.status(500).send({ error: 'Failed to Create Customer Account' });
+    }
+})
+
+
  
 
 // ########################################

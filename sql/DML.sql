@@ -44,13 +44,13 @@ JOIN Accounts a ON a.account_id = ca.account_id;
 INSERT INTO `Customers_Accounts` (customer_id, account_id, role)
 VALUES
 (
-    (SELECT customer_id FROM Customers WHERE first_name = @first_name, last_name = @last_name, middle_name = @middle_name, phone_number = @phone_number), 
+    (SELECT customer_id FROM Customers WHERE first_name = @first_name AND last_name = @last_name AND phone_number = @phone_number), 
     (SELECT account_id FROM Accounts WHERE account_number = @account_number),
     @role
 );
 
 UPDATE Customers_Accounts
-SET customer_id = (SELECT customer_id FROM Customers WHERE first_name = @first_name, last_name = @last_name, middle_name = @middle_name, phone_number = @phone_number),
+SET customer_id = (SELECT customer_id FROM Customers WHERE first_name = @first_name AND last_name = @last_name AND phone_number = @phone_number),
     account_id = (SELECT account_id FROM Accounts WHERE account_number = @account_number),
     role = @role
 WHERE customer_account_id = @customer_account_id;
