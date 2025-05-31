@@ -16,7 +16,7 @@
             <th>Account Type</th>
             <th>Balance</th>
             <th>Account Number</th>
-            <th></th>
+            
         </tr>
     </thead>
 
@@ -29,7 +29,7 @@
             <td>{{this.balance}}</td>
             <td>{{this.account_number}}</td>
 
-            {{! DELETE form }}
+            {{!-- DELETE form 
             <form id='delete_account_form'>
                 <input type='hidden' name='delete_account_id' value='{{this.account_id}}' />
                 <input type='hidden' name='delete_account_number' value='{{this.account_number}}' />
@@ -39,12 +39,13 @@
                     </button>
                 </td>
             </form>
+            --}}
         </tr>
         {{/each}}
     </tbody>
 </table>
 
-{{! CREATE form }}
+{{!-- CREATE form 
 <h2>Create an account</h2>
 <form class='cuForm' id='create_account_form'>
 
@@ -60,3 +61,4 @@
 
     <input type='submit' />
 </form>
+--}}
