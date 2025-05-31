@@ -203,7 +203,49 @@ app.post('/update_customer_account', async (req,res) => {
         // res.status(200).send({ message: 'Customer Account Updated' });
     } catch (error) {
         console.error('Error calling Update Customer procedure:', error);
-        res.status(500).send({ error: 'Failed to Update Customer Account' });
+
+        // 1. Trigger violation: only one primary per account
+        if (error.code === 'ER_SIGNAL_EXCEPTION' && error.sqlMessage.includes("Only one primary holder")) {
+            return res.status(400).json({
+                error: "Only one primary holder is allowed per account. Please choose 'secondary' or use a different account."
+            });
+        }
+
+        // 2. Foreign key constraint errors
+        if (error.code === 'ER_NO_REFERENCED_ROW_2') {
+            if (error.sqlMessage.includes('fk_customers_has_accounts_accounts1')) {
+                return res.status(400).json({
+                    error: "Invalid account number. The account must exist before linking a customer."
+                });
+            }
+            if (error.sqlMessage.includes('fk_customers_has_accounts_customers1')) {
+                return res.status(400).json({
+                    error: "Invalid customer. The customer must exist before linking an account."
+                });
+            }
+        }
+
+        // 3. NULL value errors (bad or missing data)
+        if (error.code === 'ER_BAD_NULL_ERROR') {
+            if (error.sqlMessage.includes("account_id")) {
+                return res.status(400).json({
+                    error: "Invalid account number. The account must exist before linking a customer."
+                });
+            }
+            if (error.sqlMessage.includes("customer_id")) {
+                return res.status(400).json({
+                    error: "Invalid customer. The customer must exist before linking an account."
+                });
+            }
+            return res.status(400).json({
+                error: "Missing required field. Please verify the input data."
+            });
+        }
+
+        // 4. Catch-all error response
+        return res.status(500).json({
+            error: "An unexpected error occurred while updating the customer account."
+        });
     }
 })
 
@@ -216,8 +258,32 @@ app.post('/create_customer_account', async (req,res) => {
         res.redirect('/customers_accounts');    
         // res.status(200).send({ message: 'Customer Account Created' });
     } catch (error) {
-        console.error('Error calling Create Customer procedure:', error);
-        res.status(500).send({ error: 'Failed to Create Customer Account. Please confirm Customer name, phone number, and account number entered correctly.' });
+        console.error("Error calling Create Customer procedure:", error);
+
+        if (error.code === 'ER_SIGNAL_EXCEPTION' && error.sqlMessage.includes("Only one primary holder")) {
+            res.status(400).json({
+            error: "Only one primary holder is allowed per account. Please choose 'secondary' or use a different account."
+            });
+
+        } else if (error.code === 'ER_BAD_NULL_ERROR') {
+            if (error.sqlMessage.includes("account_id")) {
+            res.status(400).json({
+                error: "Invalid account number. The account must exist before linking a customer."
+            });
+            } else if (error.sqlMessage.includes("customer_id")) {
+            res.status(400).json({
+                error: "Invalid customer. The customer must exist before linking an account."
+            });
+            } else {
+            res.status(400).json({ error: "Missing required field. Please verify the data." });
+            }
+
+        } else {
+            // General fallback error
+            res.status(500).json({
+            error: "An unexpected error occurred while creating the customer account."
+            });
+        }
     }
 })
 
