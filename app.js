@@ -180,6 +180,27 @@ app.post('/create_customer', async (req,res) => {
     }
 })
 
+app.get('/update_customer', async (req,res)  => {
+    const customer_id = req.query.update_customer_id;
+    const customer = await db.query('CALL ReadCustomer(?)', [customer_id]);
+    console.log(customer[0][0][0]);
+    res.render('update_customer', {customer: customer[0][0][0]});
+});
+
+app.post('/update_customer', async (req,res)  => {
+    const {customer_id, first_name, middle_name, last_name, phone_number, email, business_name} = req.body;
+    console.log(req.body);
+    try {
+        // Replace with your actual stored procedure name
+        await db.query('CALL UpdateCustomer(?,?,?,?,?,?,?)',[customer_id, first_name, middle_name, last_name, phone_number, email, business_name]);
+        res.redirect('/customers');    
+        // res.status(200).send({ message: 'Customer Updated' });
+    } catch (error) {
+        console.error('Error calling Update Customer procedure:', error);
+        res.status(500).send({ error: 'Failed to Update Customer' });
+    }
+});
+
 app.post('/delete_customer_account', async (req,res) => {
     const {customer_account_id} = req.body;
     try {
