@@ -271,6 +271,7 @@ BEGIN
     -- -----------------------------------------------------
 
     DROP TRIGGER IF EXISTS update_balance_after_transaction;
+
     -- create string for sql that creates trigger
     SET @trigger_sql = '
     CREATE TRIGGER update_balance_after_transaction
@@ -298,8 +299,61 @@ BEGIN
     EXECUTE stmt;
     -- clean the prepared statement from memory
     DEALLOCATE PREPARE stmt;
+
+
+DROP TRIGGER IF EXISTS prevent_multiple_primaries;
+SET @trigger_sql_2 = '
+CREATE TRIGGER prevent_multiple_primaries
+BEFORE INSERT ON Customers_Accounts
+FOR EACH ROW
+BEGIN
+  IF NEW.role = ''primary'' THEN
+    IF EXISTS (
+      SELECT 1 FROM Customers_Accounts
+      WHERE account_id = NEW.account_id AND role = ''primary''
+    ) THEN
+      SIGNAL SQLSTATE ''45000''
+      SET MESSAGE_TEXT = ''Only one primary holder allowed per account'';
+    END IF;
+  END IF;
+END;
+';
+    -- parse the string into sql
+    PREPARE stmt2 FROM @trigger_sql_2;
+    -- execute the sql
+    EXECUTE stmt2;
+    -- clean the prepared statement from memory
+    DEALLOCATE PREPARE stmt2;
+
+DROP TRIGGER IF EXISTS prevent_multiple_primaries_update;
+-- Trigger for UPDATE
+SET @trigger_sql_update = '
+CREATE TRIGGER prevent_multiple_primaries_update
+BEFORE UPDATE ON Customers_Accounts
+FOR EACH ROW
+BEGIN
+  IF NEW.role = ''primary'' THEN
+    IF EXISTS (
+      SELECT 1 FROM Customers_Accounts
+      WHERE account_id = NEW.account_id AND role = ''primary''
+            AND customer_account_id != NEW.customer_account_id
+    ) THEN
+      SIGNAL SQLSTATE ''45000''
+      SET MESSAGE_TEXT = ''Only one primary holder allowed per account'';
+    END IF;
+  END IF;
+END;
+';
+
+    -- parse the string into sql
+    PREPARE stmt3 FROM @trigger_sql_update;
+    -- execute the sql
+    EXECUTE stmt3;
+    -- clean the prepared statement from memory
+    DEALLOCATE PREPARE stmt3;
   END
-  //
+
+//
 
 DELIMITER ;
 
