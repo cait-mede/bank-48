@@ -217,7 +217,7 @@ app.post('/create_customer_account', async (req,res) => {
         // res.status(200).send({ message: 'Customer Account Created' });
     } catch (error) {
         console.error('Error calling Create Customer procedure:', error);
-        res.status(500).send({ error: 'Failed to Create Customer Account' });
+        res.status(500).send({ error: 'Failed to Create Customer Account. Please confirm Customer name, phone number, and account number entered correctly.' });
     }
 })
 
