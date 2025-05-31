@@ -1,0 +1,59 @@
+<h2>Edit Person</h2>
+
+<form action="/update_customer" method="POST" class="cuForm">
+  <!-- Hidden field to keep track of which customer is being updated -->
+  <input type="hidden" name="customer_id" value="{{customer.customer_id}}" />
+
+  <label for="first_name">First Name:</label>
+  <input 
+    type="text" 
+    id="first_name" 
+    name="first_name" 
+    value="{{customer.first_name}}" 
+    required
+  />
+
+  <label for="middle_name">Middle Name:</label>
+  <input 
+    type="text" 
+    id="middle_name" 
+    name="middle_name" 
+    value="{{customer.middle_name}}" 
+  />
+
+  <label for="last_name">Last Name:</label>
+  <input 
+    type="text" 
+    id="last_name" 
+    name="last_name" 
+    value="{{customer.last_name}}" 
+    required
+  />
+
+  <label for="phone_number">Phone Number:</label>
+  <input 
+    type="text" 
+    id="phone_number" 
+    name="phone_number" 
+    value="{{customer.phone_number}}" 
+    required
+  />
+
+  <label for="email">Email:</label>
+  <input 
+    type="text" 
+    id="email" 
+    name="email" 
+    value="{{customer.email}}" 
+  />
+
+  <label for="business_name">Business Name:</label>
+  <input 
+    type="text" 
+    id="business_name" 
+    name="business_name" 
+    value="{{customer.business_name}}" 
+  />
+
+  <input type="submit" value="Update Customer" />
+</form>

@@ -3,6 +3,8 @@ DROP PROCEDURE IF EXISTS DeleteCustomerAccount;
 DROP PROCEDURE IF EXISTS CreateCustomer;
 DROP PROCEDURE IF EXISTS UpdateCustomerAccount;
 DROP PROCEDURE IF EXISTS CreateCustomerAccount;
+DROP PROCEDURE IF EXISTS ReadCustomer;
+DROP PROCEDURE IF EXISTS UpdateCustomer;
 DELIMITER //
 
 -- Delete Customer Procedure
@@ -12,6 +14,34 @@ CREATE PROCEDURE DeleteCustomer(
 )
 BEGIN
     DELETE FROM Customers WHERE customer_id = p_customer_id;
+END//
+
+CREATE PROCEDURE ReadCustomer(
+    in p_customer_id int
+)
+BEGIN
+    SELECT * FROM Customers WHERE customer_id = p_customer_id;
+END//
+
+CREATE PROCEDURE UpdateCustomer(
+    in p_customer_id int,
+    in p_first_name varchar(45),
+    in p_middle_name varchar(45),
+    in p_last_name varchar(45),
+    in p_phone_number varchar(45),
+    in p_email varchar(45),
+    in p_business_name varchar(45)
+)
+BEGIN
+    UPDATE Customers
+    SET
+    first_name = p_first_name,
+    middle_name = p_middle_name,
+    last_name = p_last_name,
+    phone_number = p_phone_number,
+    email = p_email,
+    business_name = p_business_name 
+    WHERE customer_id = p_customer_id;
 END//
 
 CREATE PROCEDURE CreateCustomer(

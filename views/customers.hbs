@@ -50,7 +50,7 @@
 </table>
 
 {{! CREATE form }}
-<h2>Create a Person</h2>
+<h2>Create a Customer</h2>
 <form action="/create_customer" method = "POST" class='cuForm' id='create_person_form'>
     <label for='create_person_first_name'>First Name: </label>
     <input type='text' name='first_name' id='create_person_first_name' required />
@@ -74,8 +74,8 @@
 </form>
 
 {{! UPDATE form }}
-<h2>Update a Person</h2>
-<form class='cuForm' id='update_person_form'>
+<h2>Update a Customer</h2>
+<form class='cuForm' id='update_person_form' action = '/update_customer' method ='GET'>
     <label for='update_customer_id'>Person to Update: </label>
     <select name='update_customer_id' id='update_customer_id' required>
         <option value='' disabled selected>Select a Customer</option>
@@ -89,5 +89,5 @@
         {{/each}}
     </select>
 
-    <input type='submit' />
+    <input type='submit' value = 'Update'/>
 </form>
