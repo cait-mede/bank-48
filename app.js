@@ -16,7 +16,6 @@ const PORT = 48488;
 
 // Database
 const db = require('./database/db-connector');
-
 // Handlebars
 const { engine } = require('express-handlebars'); // Import express-handlebars engine
 app.engine('.hbs', engine({ extname: '.hbs' })); // Create instance of handlebars
@@ -130,9 +129,13 @@ app.get('/customers_accounts', async function (req, res) {
                         FROM Customers_Accounts ca \
                         JOIN Customers c ON c.customer_id = ca.customer_id \
                         JOIN Accounts a ON a.account_id = ca.account_id;'
+        const query2 = 'SELECT account_number FROM Accounts;'
+        const query3 = 'SELECT customer_id, first_name, last_name, middle_name, phone_number, business_name, email, CONCAT(first_name, " ", last_name) AS full_name FROM Customers;'
                         
         const [customers_accounts] = await db.query(query1);
-        res.render('customers_accounts', { customers_accounts: customers_accounts});
+        const [account_numbers] = await db.query(query2);
+        const [customer_names] = await db.query(query3);
+        res.render('customers_accounts', { customers_accounts: customers_accounts, account_numbers: account_numbers, customer_names: customer_names});
     } catch (error) {
         console.error('Error executing queries:', error);
         // Send a generic error message to the browser
@@ -215,11 +218,11 @@ app.post('/delete_customer_account', async (req,res) => {
 })
 
 app.post('/update_customer_account', async (req,res) => {
-    const {customer_account_id, first_name, last_name, phone_number, account_number, role} = req.body;
+    const {customer_account_id, customer_id, account_number, role} = req.body;
     console.log(req.body);
     try {
         // Replace with your actual stored procedure name
-        await db.query('CALL UpdateCustomerAccount(?,?,?,?,?,?)',[first_name, last_name, phone_number, account_number, role, customer_account_id]);
+        await db.query('CALL UpdateCustomerAccount(?,?,?,?)',[customer_id, account_number, role, customer_account_id]);
         res.redirect('/customers_accounts');    
         // res.status(200).send({ message: 'Customer Account Updated' });
     } catch (error) {
@@ -271,11 +274,12 @@ app.post('/update_customer_account', async (req,res) => {
 })
 
 app.post('/create_customer_account', async (req,res) => {
-    const {first_name, last_name, phone_number, account_number, role} = req.body;
+    console.log(req.body);
+    const {customer_id, account_number, role} = req.body;
     console.log(req.body);
     try {
         // Replace with your actual stored procedure name
-        await db.query('CALL CreateCustomerAccount(?,?,?,?,?)',[first_name, last_name, phone_number, account_number, role]);
+        await db.query('CALL CreateCustomerAccount(?,?,?)',[customer_id, account_number, role]);
         res.redirect('/customers_accounts');    
         // res.status(200).send({ message: 'Customer Account Created' });
     } catch (error) {

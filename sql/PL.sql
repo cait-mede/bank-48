@@ -67,9 +67,7 @@ BEGIN
 END//
 
 CREATE PROCEDURE UpdateCustomerAccount(
-    in p_first_name varchar(45),
-    in p_last_name varchar(45),
-    in p_phone_number varchar(45),
+    in p_customer_id int,
     in p_account_number varchar(12),
     in p_role varchar(45),
     in p_customer_account_id int
@@ -77,16 +75,14 @@ CREATE PROCEDURE UpdateCustomerAccount(
 BEGIN
     UPDATE Customers_Accounts
     SET 
-    customer_id = (SELECT customer_id FROM Customers WHERE first_name = p_first_name AND last_name = p_last_name AND phone_number = p_phone_number),
+    customer_id = p_customer_id,
     account_id = (SELECT account_id FROM Accounts WHERE account_number = p_account_number),
     role = p_role   
     WHERE customer_account_id = p_customer_account_id;
 END//
 
 CREATE PROCEDURE CreateCustomerAccount(
-    in p_first_name varchar(45),
-    in p_last_name varchar(45),
-    in p_phone_number varchar(45),
+    in p_customer_id int,
     in p_account_number varchar(12),
     in p_role varchar(45)
 )
@@ -94,7 +90,7 @@ BEGIN
     INSERT INTO `Customers_Accounts` (customer_id, account_id, role)
     VALUES
     (
-    (SELECT customer_id FROM Customers WHERE first_name = p_first_name AND last_name = p_last_name AND phone_number = p_phone_number), 
+    p_customer_id, 
     (SELECT account_id FROM Accounts WHERE account_number = p_account_number),
     p_role
     );
