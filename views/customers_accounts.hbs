@@ -39,17 +39,33 @@
 
 <h2>Create Customer Account</h2>
 <form class="caForm" id="create_ca_form" method="POST" action="/create_customer_account">
-  <label for="create_first_name">First Name:</label>
+  {{!-- <label for="create_first_name">First Name:</label>
   <input type="text" name="first_name" id="create_first_name" required />
 
   <label for="create_last_name">Last Name:</label>
   <input type="text" name="last_name" id="create_last_name" required />
 
   <label for="create_phone_number">Phone Number:</label>
-  <input type="text" name="phone_number" id="create_phone_number" required />
+  <input type="text" name="phone_number" id="create_phone_number" required /> --}}
+  <label for='update_customer_name'>Customer: </label>
+    <select name='customer_full_name' id='update_account_number' required>
+        <option value='' disabled selected>Select a Customer</option>
+        {{#each customer_names}}
+        <option value='{{this.full_name}}' required>
+            {{this.full_name}}
+        </option>
+        {{/each}}
+    </select>
 
   <label for="create_account_number">Account Number:</label>
-  <input type="text" name="account_number" id="create_account_number" required />
+  <select name='account_number' id='update_account_number' required>
+        <option value='' disabled selected>Select an Account</option>
+        {{#each account_numbers}}
+        <option value='{{this.account_number}}' required>
+            {{this.account_number}}
+        </option>
+        {{/each}}
+ </select>
   <br />
   <label for="create_role">Role:</label>
   <select name="role" id="create_role" required>
@@ -77,18 +93,34 @@
     </select>
     <label for='update_account_id'> </label>
     </br>
-    <label for='update_person_first_name'>First Name: </label>
+    {{!-- <label for='update_person_first_name'>First Name: </label>
     <input type='text' name='first_name' id='update_person_first_name' required />
 
     <label for='update_person_last_name'>Last Name: </label>
     <input type='text' name='last_name' id='update_person_last_name' required/>
 
     <label for='update_person_phone_number'>Phone Number: </label>
-    <input type='text' name='phone_number' id='update_person_phone_number' required/>
-
+    <input type='text' name='phone_number' id='update_person_phone_number' required/> --}}
+    <label for='update_customer_name'>Customer: </label>
+    <select name='update_customer_account_id' id='update_customer_account_id' required>
+        <option value='' disabled selected>Select a Customer</option>
+        {{#each customer_names}}
+        <option value='{{this.full_name}}' required>
+            {{this.full_name}}
+        </option>
+        {{/each}}
+    </select>
     </br>
     <label for='update_account_id'>Account Number: </label>
-    <input type='text' name='account_number' id='update_account_number'/>
+    <select name='account_number' id='update_account_number' required>
+        <option value='' disabled selected>Select an Account</option>
+        {{#each account_numbers}}
+        <option value='{{this.account_number}}' required>
+            {{this.account_number}}
+        </option>
+        {{/each}}
+    </select>
+
     </br>
 
     <label for='update_role'>Role: </label>

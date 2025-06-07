@@ -129,9 +129,13 @@ app.get('/customers_accounts', async function (req, res) {
                         FROM Customers_Accounts ca \
                         JOIN Customers c ON c.customer_id = ca.customer_id \
                         JOIN Accounts a ON a.account_id = ca.account_id;'
+        const query2 = 'SELECT account_number FROM Accounts;'
+        const query3 = 'SELECT CONCAT(first_name, " ", last_name) AS full_name FROM Customers;'
                         
         const [customers_accounts] = await db.query(query1);
-        res.render('customers_accounts', { customers_accounts: customers_accounts});
+        const [account_numbers] = await db.query(query2);
+        const [customer_names] = await db.query(query3);
+        res.render('customers_accounts', { customers_accounts: customers_accounts, account_numbers: account_numbers, customer_names: customer_names});
     } catch (error) {
         console.error('Error executing queries:', error);
         // Send a generic error message to the browser
